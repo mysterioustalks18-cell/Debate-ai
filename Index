@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e8d44d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DEBATE.AI">
+<meta name="description" content="Argue any topic vs AI. Get scored on logic, evidence & persuasion.">
+
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<title>DEBATE.AI — Sharpen Your Argument</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a08;
+    --surface: #111110;
+    --border: #2a2a26;
+    --accent: #e8d44d;
+    --accent2: #ff5c38;
+    --text: #f0efe8;
+    --muted: #888880;
+    --user-bg: #1a1a17;
+    --ai-bg: #141412;
+    --win: #4dba87;
+    --lose: #ff5c38;
+    --neutral: #e8d44d;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Barlow’, sans-serif;
+min-height: 100vh;
+min-height: 100dvh;
+overflow-x: hidden;
+}
+
+body::before {
+content: ‘’;
+position: fixed; inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+pointer-events: none; z-index: 9999; opacity: 0.4;
+}
+
+/* INSTALL BANNER */
+#installBanner {
+display: none;
+background: var(–accent);
+color: #0a0a08;
+padding: 10px 20px;
+text-align: center;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 13px;
+letter-spacing: 1px;
+cursor: pointer;
+position: relative;
+}
+
+#installBanner.show { display: block; }
+#installBanner strong { font-weight: 600; }
+#dismissInstall {
+position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+background: none; border: none; font-size: 18px; cursor: pointer; color: #0a0a08;
+}
+
+/* HEADER */
+header {
+display: flex; align-items: center; justify-content: space-between;
+padding: calc(14px + var(–safe-top)) 24px 14px;
+border-bottom: 1px solid var(–border);
+position: sticky; top: 0; z-index: 100;
+background: rgba(10,10,8,0.94);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+}
+
+.logo {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 26px; letter-spacing: 4px; color: var(–accent);
+}
+.logo span { color: var(–text); }
+
+.score-badge { display: flex; gap: 18px; align-items: center; }
+.score-item { text-align: center; font-family: ‘IBM Plex Mono’, monospace; }
+.score-num { font-size: 22px; font-weight: 600; line-height: 1; }
+.score-label { font-size: 9px; color: var(–muted); letter-spacing: 2px; text-transform: uppercase; }
+.score-w { color: var(–win); }
+.score-l { color: var(–lose); }
+.score-d { color: var(–neutral); }
+
+/* APP */
+.app {
+max-width: 860px; margin: 0 auto;
+padding: 28px 16px calc(28px + var(–safe-bottom));
+display: flex; flex-direction: column; gap: 24px;
+}
+
+/* SETUP */
+.section-eyebrow {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 10px; color: var(–accent);
+letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px;
+}
+
+.topic-input-row { display: flex; gap: 10px; }
+
+.topic-input {
+flex: 1;
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 6px; padding: 13px 16px;
+font-family: ‘DM Serif Display’, serif; font-size: 17px;
+color: var(–text); outline: none; transition: border-color 0.2s;
+}
+.topic-input:focus { border-color: var(–accent); }
+.topic-input::placeholder { color: var(–muted); font-style: italic; }
+
+.btn {
+padding: 13px 24px; font-family: ‘Bebas Neue’, sans-serif;
+font-size: 17px; letter-spacing: 2px; border: none;
+border-radius: 6px; cursor: pointer; transition: all 0.15s;
+}
+.btn-primary { background: var(–accent); color: #0a0a08; }
+.btn-primary:hover { background: #f0de60; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary {
+background: transparent; color: var(–muted);
+border: 1px solid var(–border); font-size: 13px;
+padding: 10px 16px; letter-spacing: 1px;
+}
+.btn-secondary:hover { border-color: var(–text); color: var(–text); }
+
+.side-picker { display: flex; gap: 10px; margin-top: 14px; }
+.side-btn {
+flex: 1; padding: 14px; background: var(–surface);
+border: 1.5px solid var(–border); border-radius: 6px;
+cursor: pointer; text-align: center; transition: all 0.2s;
+font-family: ‘Bebas Neue’, sans-serif; font-size: 19px;
+letter-spacing: 2px; color: var(–muted);
+}
+.side-btn.active-for { border-color: var(–win); color: var(–win); background: rgba(77,186,135,0.06); }
+.side-btn.active-against { border-color: var(–lose); color: var(–lose); background: rgba(255,92,56,0.06); }
+.side-btn:hover:not(.active-for):not(.active-against) { border-color: var(–accent); color: var(–accent); }
+.side-icon { font-size: 26px; display: block; margin-bottom: 3px; }
+.side-sub { font-family: ‘Barlow’, sans-serif; font-size: 10px; letter-spacing: 1px; margin-top: 3px; opacity: 0.7; }
+
+.suggestions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 16px; }
+.suggestion-chip {
+padding: 6px 12px; background: var(–surface);
+border: 1px solid var(–border); border-radius: 20px;
+font-size: 11px; color: var(–muted); cursor: pointer;
+transition: all 0.15s; font-family: ‘IBM Plex Mono’, monospace;
+}
+.suggestion-chip:hover { border-color: var(–accent); color: var(–accent); }
+
+/* ARENA */
+.arena { display: none; animation: fadeUp 0.4s ease both; }
+.arena.visible { display: block; }
+
+.topic-banner {
+background: linear-gradient(135deg, var(–surface) 0%, #161614 100%);
+border: 1px solid var(–border); border-left: 3px solid var(–accent);
+padding: 14px 18px; border-radius: 6px; margin-bottom: 16px;
+}
+.topic-banner-label {
+font-family: ‘IBM Plex Mono’, monospace; font-size: 9px;
+color: var(–accent); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 5px;
+}
+.topic-banner-text { font-family: ‘DM Serif Display’, serif; font-size: 18px; font-style: italic; }
+.debate-side-indicator {
+display: inline-block; margin-left: 10px;
+font-family: ‘IBM Plex Mono’, monospace; font-size: 11px;
+padding: 2px 8px; border-radius: 2px; vertical-align: middle;
+}
+.for-badge { background: rgba(77,186,135,0.15); color: var(–win); }
+.against-badge { background: rgba(255,92,56,0.15); color: var(–lose); }
+
+.round-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.round-label { font-family: ‘IBM Plex Mono’, monospace; font-size: 10px; color: var(–muted); letter-spacing: 2px; }
+.round-dots { display: flex; gap: 5px; }
+.round-dot {
+width: 7px; height: 7px; border-radius: 50%;
+border: 1px solid var(–border); background: transparent; transition: all 0.3s;
+}
+.round-dot.done { background: var(–accent); border-color: var(–accent); }
+.round-dot.current { border-color: var(–accent); box-shadow: 0 0 5px var(–accent); }
+
+.chat-log {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: 6px; min-height: 320px; max-height: 440px;
+overflow-y: auto; padding: 16px;
+display: flex; flex-direction: column; gap: 14px;
+scroll-behavior: smooth;
+}
+.chat-log::-webkit-scrollbar { width: 3px; }
+.chat-log::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+
+.msg { display: flex; gap: 10px; animation: msgIn 0.3s ease both; }
+.msg.user { flex-direction: row-reverse; }
+
+@keyframes msgIn {
+from { opacity: 0; transform: translateY(6px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.msg-avatar {
+width: 34px; height: 34px; border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+font-family: ‘Bebas Neue’, sans-serif; font-size: 12px;
+letter-spacing: 1px; flex-shrink: 0;
+}
+.ai-avatar { background: #1e1e1a; border: 1px solid var(–border); color: var(–accent); }
+.user-avatar { background: #1a1e1a; border: 1px solid rgba(77,186,135,0.3); color: var(–win); }
+
+.msg-bubble {
+max-width: 78%; padding: 11px 14px;
+border-radius: 6px; font-size: 14px; line-height: 1.65;
+}
+.ai .msg-bubble {
+background: var(–ai-bg); border: 1px solid var(–border); border-top-left-radius: 0;
+}
+.user .msg-bubble {
+background: var(–user-bg); border: 1px solid rgba(77,186,135,0.2);
+border-top-right-radius: 0; text-align: right;
+}
+.msg-name {
+font-family: ‘IBM Plex Mono’, monospace; font-size: 9px;
+letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; opacity: 0.5;
+}
+
+.typing-indicator {
+display: flex; align-items: center; gap: 5px;
+padding: 11px 14px; background: var(–ai-bg);
+border: 1px solid var(–border); border-radius: 6px;
+border-top-left-radius: 0; width: fit-content;
+}
+.dot { width: 5px; height: 5px; background: var(–accent); border-radius: 50%; animation: bounce 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+30% { transform: translateY(-5px); opacity: 1; }
+}
+
+.empty-chat {
+flex: 1; display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+gap: 10px; padding: 40px; opacity: 0.4;
+}
+.empty-icon { font-size: 44px; }
+.empty-text { font-family: ‘DM Serif Display’, serif; font-size: 17px; font-style: italic; text-align: center; }
+
+.input-row { display: flex; gap: 8px; margin-top: 12px; }
+.arg-input {
+flex: 1; background: var(–surface); border: 1px solid var(–border);
+border-radius: 6px; padding: 12px 14px;
+font-family: ‘Barlow’, sans-serif; font-size: 14px;
+color: var(–text); outline: none; resize: none; transition: border-color 0.2s; line-height: 1.5;
+}
+.arg-input:focus { border-color: var(–accent); }
+.arg-input::placeholder { color: var(–muted); }
+.send-btn {
+padding: 12px 20px; background: var(–accent); border: none;
+border-radius: 6px; font-family: ‘Bebas Neue’, sans-serif;
+font-size: 15px; letter-spacing: 2px; color: #0a0a08;
+cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.send-btn:hover { background: #f0de60; }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.arena-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+
+/* VERDICT */
+.verdict-panel {
+display: none; background: var(–surface);
+border: 1px solid var(–border); border-radius: 6px;
+padding: 24px; animation: fadeUp 0.5s ease both;
+}
+.verdict-panel.visible { display: block; }
+.verdict-title { font-family: ‘Bebas Neue’, sans-serif; font-size: 32px; letter-spacing: 3px; margin-bottom: 18px; }
+.verdict-win { color: var(–win); }
+.verdict-lose { color: var(–lose); }
+.verdict-draw { color: var(–neutral); }
+
+.score-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 20px; }
+.score-card {
+background: var(–bg); border: 1px solid var(–border);
+border-radius: 6px; padding: 12px; text-align: center;
+}
+.score-card-num { font-family: ‘IBM Plex Mono’, monospace; font-size: 28px; font-weight: 600; line-height: 1; color: var(–accent); }
+.score-card-label { font-size: 9px; color: var(–muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; }
+
+.feedback-text {
+font-size: 14px; line-height: 1.7; color: #c8c7c0;
+margin-bottom: 18px; padding: 14px;
+background: var(–bg); border-radius: 6px; border-left: 2px solid var(–accent);
+}
+.verdict-actions { display: flex; gap: 10px; }
+
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(14px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* ERROR TOAST */
+#errorToast {
+position: fixed; bottom: calc(20px + var(–safe-bottom)); left: 50%; transform: translateX(-50%);
+background: var(–lose); color: white; padding: 10px 20px;
+border-radius: 6px; font-family: ‘IBM Plex Mono’, monospace;
+font-size: 12px; letter-spacing: 1px; z-index: 9998;
+opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+#errorToast.show { opacity: 1; }
+
+@media (max-width: 500px) {
+.score-grid { grid-template-columns: repeat(2,1fr); }
+.topic-input-row { flex-direction: column; }
+.verdict-actions { flex-direction: column; }
+header { padding: calc(12px + var(–safe-top)) 14px 12px; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- Install PWA Banner -->
+
+<div id="installBanner">
+  📱 <strong>Add to Home Screen</strong> — install DEBATE.AI as an app!
+  <button id="dismissInstall" onclick="dismissInstall()">✕</button>
+</div>
+
+<header>
+  <div class="logo">DEBATE<span>.</span>AI</div>
+  <div class="score-badge">
+    <div class="score-item">
+      <div class="score-num score-w" id="wins">0</div>
+      <div class="score-label">Wins</div>
+    </div>
+    <div class="score-item">
+      <div class="score-num score-l" id="losses">0</div>
+      <div class="score-label">Losses</div>
+    </div>
+    <div class="score-item">
+      <div class="score-num score-d" id="draws">0</div>
+      <div class="score-label">Draws</div>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- SETUP -->
+
+  <div id="setupSection" style="animation: fadeUp 0.5s ease both;">
+    <div class="section-eyebrow">// Choose your battle</div>
+    <div class="topic-input-row">
+      <input class="topic-input" id="topicInput" placeholder="e.g. Social media does more harm than good..." maxlength="120" />
+      <button class="btn btn-primary" onclick="randomTopic()">⚡</button>
+    </div>
+    <div style="margin-top:14px">
+      <div class="section-eyebrow">// Pick your side</div>
+      <div class="side-picker">
+        <div class="side-btn" id="forBtn" onclick="selectSide('for')">
+          <span class="side-icon">✊</span>FOR
+          <div class="side-sub">I support this</div>
+        </div>
+        <div class="side-btn" id="againstBtn" onclick="selectSide('against')">
+          <span class="side-icon">⚔️</span>AGAINST
+          <div class="side-sub">I oppose this</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:18px">
+      <button class="btn btn-primary" onclick="startDebate()" style="font-size:19px; padding:15px 36px; width:100%;">
+        ENTER THE ARENA
+      </button>
+    </div>
+    <div class="suggestions" style="margin-top:16px">
+      <div class="section-eyebrow" style="width:100%; margin-bottom:2px;">// Quick topics</div>
+      <span class="suggestion-chip" onclick="setTopic(this)">AI will replace most jobs</span>
+      <span class="suggestion-chip" onclick="setTopic(this)">Space exploration is worth the cost</span>
+      <span class="suggestion-chip" onclick="setTopic(this)">Universal Basic Income should be implemented</span>
+      <span class="suggestion-chip" onclick="setTopic(this)">Social media does more harm than good</span>
+      <span class="suggestion-chip" onclick="setTopic(this)">Homework should be abolished</span>
+      <span class="suggestion-chip" onclick="setTopic(this)">Nuclear energy is the future</span>
+    </div>
+  </div>
+
+  <!-- ARENA -->
+
+  <div class="arena" id="arenaSection">
+    <div class="topic-banner">
+      <div class="topic-banner-label">// Resolution</div>
+      <div class="topic-banner-text" id="topicDisplay">—
+        <span class="debate-side-indicator" id="sideIndicator"></span>
+      </div>
+    </div>
+    <div class="round-info">
+      <span class="round-label">ROUND <span id="roundNum">1</span> / 4</span>
+      <div class="round-dots" id="roundDots">
+        <div class="round-dot current"></div>
+        <div class="round-dot"></div>
+        <div class="round-dot"></div>
+        <div class="round-dot"></div>
+      </div>
+    </div>
+    <div class="chat-log" id="chatLog">
+      <div class="empty-chat" id="emptyChat">
+        <div class="empty-icon">⚖️</div>
+        <div class="empty-text">Make your opening argument</div>
+      </div>
+    </div>
+    <div class="input-row">
+      <textarea class="arg-input" id="argInput" placeholder="State your argument..." rows="2"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendArgument();}"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendArgument()">ARGUE →</button>
+    </div>
+    <div class="arena-actions">
+      <button class="btn btn-secondary" onclick="endDebate()">⚑ Request Verdict</button>
+      <button class="btn btn-secondary" onclick="resetDebate()">↩ New Topic</button>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+
+  <div class="verdict-panel" id="verdictPanel">
+    <div class="verdict-title" id="verdictTitle">—</div>
+    <div class="score-grid">
+      <div class="score-card"><div class="score-card-num" id="scoreLogic">—</div><div class="score-card-label">Logic</div></div>
+      <div class="score-card"><div class="score-card-num" id="scoreEvidence">—</div><div class="score-card-label">Evidence</div></div>
+      <div class="score-card"><div class="score-card-num" id="scorePersuasion">—</div><div class="score-card-label">Persuasion</div></div>
+      <div class="score-card"><div class="score-card-num" id="scoreOverall">—</div><div class="score-card-label">Overall</div></div>
+    </div>
+    <div class="feedback-text" id="feedbackText">—</div>
+    <div class="verdict-actions">
+      <button class="btn btn-primary" onclick="resetDebate()">DEBATE AGAIN</button>
+      <button class="btn btn-secondary" onclick="sameTopicFlip()">FLIP SIDES</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="errorToast"></div>
+
+<script>
+// ─── PWA Install ───────────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+document.getElementById('installBanner').addEventListener('click', async (e) => {
+  if (e.target.id === 'dismissInstall') return;
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  }
+});
+function dismissInstall() {
+  document.getElementById('installBanner').classList.remove('show');
+}
+
+// ─── Service Worker ────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+// ─── State ────────────────────────────────────────────────────
+const TOPICS = [
+  "AI will replace most jobs within 20 years",
+  "Social media does more harm than good",
+  "Space exploration is worth the cost",
+  "Universal Basic Income should be implemented globally",
+  "Nuclear energy is the best solution for climate change",
+  "Homework should be abolished in schools",
+  "Zoos should be banned",
+  "The internet has made people less intelligent",
+  "Caffeine should be regulated like other stimulants",
+  "Remote work is better than office work"
+];
+
+let state = {
+  topic: '', side: '', round: 0, maxRounds: 4,
+  history: [], debating: false,
+  wins: parseInt(localStorage.getItem('deb_wins') || '0'),
+  losses: parseInt(localStorage.getItem('deb_losses') || '0'),
+  draws: parseInt(localStorage.getItem('deb_draws') || '0'),
+};
+
+// Restore scores
+document.getElementById('wins').textContent = state.wins;
+document.getElementById('losses').textContent = state.losses;
+document.getElementById('draws').textContent = state.draws;
+
+// ─── Helpers ──────────────────────────────────────────────────
+function showError(msg) {
+  const t = document.getElementById('errorToast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function randomTopic() {
+  document.getElementById('topicInput').value = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+}
+
+function setTopic(el) {
+  document.getElementById('topicInput').value = el.textContent;
+}
+
+function selectSide(side) {
+  state.side = side;
+  document.getElementById('forBtn').className = 'side-btn' + (side === 'for' ? ' active-for' : '');
+  document.getElementById('againstBtn').className = 'side-btn' + (side === 'against' ? ' active-against' : '');
+}
+
+// ─── Debate Flow ──────────────────────────────────────────────
+function startDebate() {
+  const topic = document.getElementById('topicInput').value.trim();
+  if (!topic) { showError('Enter a debate topic first!'); return; }
+  if (!state.side) { showError('Pick a side first!'); return; }
+
+  state.topic = topic; state.round = 0; state.history = []; state.debating = true;
+
+  document.getElementById('topicDisplay').childNodes[0].textContent = '"' + topic + '" ';
+  const badge = document.getElementById('sideIndicator');
+  badge.textContent = 'YOU: ' + state.side.toUpperCase();
+  badge.className = 'debate-side-indicator ' + (state.side === 'for' ? 'for-badge' : 'against-badge');
+
+  document.getElementById('setupSection').style.display = 'none';
+  document.getElementById('arenaSection').classList.add('visible');
+  document.getElementById('verdictPanel').classList.remove('visible');
+  clearChat(); updateRoundDots();
+}
+
+function clearChat() {
+  document.getElementById('chatLog').innerHTML =
+    '<div class="empty-chat" id="emptyChat"><div class="empty-icon">⚖️</div><div class="empty-text">Make your opening argument</div></div>';
+}
+
+function updateRoundDots() {
+  const dots = document.getElementById('roundDots').children;
+  for (let i = 0; i < dots.length; i++) {
+    dots[i].className = 'round-dot' + (i < state.round ? ' done' : i === state.round ? ' current' : '');
+  }
+  document.getElementById('roundNum').textContent = Math.min(state.round + 1, state.maxRounds);
+}
+
+async function sendArgument() {
+  const input = document.getElementById('argInput');
+  const arg = input.value.trim();
+  if (!arg || !state.debating) return;
+
+  input.value = '';
+  document.getElementById('sendBtn').disabled = true;
+
+  const emptyChat = document.getElementById('emptyChat');
+  if (emptyChat) emptyChat.remove();
+
+  addMessage('user', arg);
+  state.history.push({ role: 'user', content: arg });
+  state.round++;
+  updateRoundDots();
+  showTyping();
+
+  try {
+    const system = `You are a sharp, intellectually fierce debate opponent. The resolution: "${state.topic}". The human argues ${state.side === 'for' ? 'FOR' : 'AGAINST'}, so you argue ${state.side === 'for' ? 'AGAINST' : 'FOR'}. Push back hard. Be direct, use logic and evidence. Keep responses 2-3 short paragraphs. Challenge weak arguments and present compelling counter-evidence.`;
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system, messages: state.history })
+    });
+
+    if (!res.ok) throw new Error('API error ' + res.status);
+    const data = await res.json();
+
+    removeTyping();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Interesting. Let me counter...';
+    addMessage('ai', reply);
+    state.history.push({ role: 'assistant', content: reply });
+
+    if (state.round >= state.maxRounds) setTimeout(() => endDebate(), 800);
+  } catch (e) {
+    removeTyping();
+    showError('Connection error — check your setup');
+    addMessage('ai', '⚠️ Could not reach the server. Check your deployment.');
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+  input.focus();
+}
+
+function addMessage(who, text) {
+  const log = document.getElementById('chatLog');
+  const div = document.createElement('div');
+  div.className = 'msg ' + who;
+  div.innerHTML = `<div class="msg-avatar ${who}-avatar">${who === 'ai' ? 'AI' : 'YOU'}</div>
+    <div class="msg-bubble"><div class="msg-name">${who === 'ai' ? 'Opponent' : 'You'}</div>${text}</div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function showTyping() {
+  const log = document.getElementById('chatLog');
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'typingMsg';
+  div.innerHTML = `<div class="msg-avatar ai-avatar">AI</div>
+    <div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  log.appendChild(div); log.scrollTop = log.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typingMsg');
+  if (t) t.remove();
+}
+
+async function endDebate() {
+  if (!state.debating) return;
+  state.debating = false;
+  document.getElementById('sendBtn').disabled = true;
+  showTyping();
+
+  try {
+    const evalPrompt = `Judge this debate on: "${state.topic}". Human argued ${state.side === 'for' ? 'FOR' : 'AGAINST'}.
+
+Transcript:
+${state.history.map(h => `${h.role === 'user' ? 'Human' : 'AI'}: ${h.content}`).join('\n\n')}
+
+Evaluate ONLY the human. Respond ONLY in this exact JSON (no markdown, no extra text):
+{"logic":85,"evidence":72,"persuasion":78,"overall":78,"result":"win","feedback":"Your 2-3 sentence feedback here."}
+result must be win, loss, or draw. Scores 0-100.`;
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: evalPrompt }] })
+    });
+
+    const data = await res.json();
+    removeTyping();
+
+    const raw = data.content?.map(b => b.text || '').join('') || '{}';
+    const verdict = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    showVerdict(verdict);
+  } catch (e) {
+    removeTyping();
+    showVerdict({ logic: 70, evidence: 65, persuasion: 68, overall: 68, result: 'draw', feedback: 'Could not evaluate — but you showed up and argued. That counts.' });
+  }
+}
+
+function showVerdict(v) {
+  const panel = document.getElementById('verdictPanel');
+  panel.classList.add('visible');
+
+  const titleEl = document.getElementById('verdictTitle');
+  if (v.result === 'win') {
+    titleEl.textContent = '🏆 VICTORY — YOU WON';
+    titleEl.className = 'verdict-title verdict-win'; state.wins++;
+    localStorage.setItem('deb_wins', state.wins);
+  } else if (v.result === 'loss') {
+    titleEl.textContent = '💀 DEFEATED — TRY AGAIN';
+    titleEl.className = 'verdict-title verdict-lose'; state.losses++;
+    localStorage.setItem('deb_losses', state.losses);
+  } else {
+    titleEl.textContent = '⚖️ DRAW — WELL FOUGHT';
+    titleEl.className = 'verdict-title verdict-draw'; state.draws++;
+    localStorage.setItem('deb_draws', state.draws);
+  }
+
+  document.getElementById('scoreLogic').textContent = v.logic;
+  document.getElementById('scoreEvidence').textContent = v.evidence;
+  document.getElementById('scorePersuasion').textContent = v.persuasion;
+  document.getElementById('scoreOverall').textContent = v.overall;
+  document.getElementById('feedbackText').textContent = v.feedback;
+
+  document.getElementById('wins').textContent = state.wins;
+  document.getElementById('losses').textContent = state.losses;
+  document.getElementById('draws').textContent = state.draws;
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function resetDebate() {
+  document.getElementById('arenaSection').classList.remove('visible');
+  document.getElementById('verdictPanel').classList.remove('visible');
+  document.getElementById('setupSection').style.display = 'block';
+  document.getElementById('sendBtn').disabled = false;
+  state.debating = false;
+}
+
+function sameTopicFlip() {
+  const newSide = state.side === 'for' ? 'against' : 'for';
+  document.getElementById('topicInput').value = state.topic;
+  selectSide(newSide);
+  resetDebate();
+}
+</script>
+
+</body>
+</html>
